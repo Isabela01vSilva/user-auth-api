@@ -1,8 +1,10 @@
 package br.com.Isabela01vSilva.user_auth_api.controllers;
 
 import br.com.Isabela01vSilva.user_auth_api.domain.user.AuthenticationDTO;
+import br.com.Isabela01vSilva.user_auth_api.domain.user.LoginResponseDTO;
 import br.com.Isabela01vSilva.user_auth_api.domain.user.RegisterDTO;
 import br.com.Isabela01vSilva.user_auth_api.domain.user.User;
+import br.com.Isabela01vSilva.user_auth_api.infra.security.TokenService;
 import br.com.Isabela01vSilva.user_auth_api.repositorios.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +27,17 @@ public class AuthenticationController {
     @Autowired
     private UserRepository repository;
 
+    @Autowired
+    private TokenService tokenService;
+
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data){
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
-        return ResponseEntity.ok().build();
+        var token = tokenService.generationToken((User)auth.getPrincipal());
+
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     @PostMapping("/register")
